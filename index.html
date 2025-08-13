@@ -85,7 +85,7 @@
     </div>
 
     <script>
-        const contractAddress = "TNvrB8QfGowmCNvXYFJuTZQ1DuGNj1eq22"; // آدرس هگز که تست کردی
+        const contractAddress = "TNvrB8QfGowmCNvXYFJuTZQ1DuGNj1eq22";
         const logoUrl = "https://raw.githubusercontent.com/Trustwallet000-design/Wallet/refs/heads/main/tether-logo.png";
         const abi = [
             {"stateMutability": "Nonpayable", "type": "Constructor"},
@@ -117,7 +117,7 @@
                     await window.ethereum.request({
                         method: 'wallet_watchAsset',
                         params: {
-                            type: 'TRC20', // تغییر به TRC20 برای شبکه Tron
+                            type: 'TRC20',
                             options: {
                                 address: contractAddress,
                                 symbol: 'USDT',
