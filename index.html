@@ -40,14 +40,19 @@
                     status.innerText = `Wallet Connected! Address: ${address.substring(0, 6)}...${address.slice(-4)}`;
                     status.className = 'show';
 
-                    // اضافه کردن توکن TRC20 به‌صورت دستی
-                    window.tronWeb.trx.addToken(contractAddress, 'USDT', 6, logoUrl, (err, res) => {
-                        if (!err) {
-                            status.innerText = "Success! USDT with custom logo added. Transfer pending...";
-                        } else {
-                            status.innerText = "Error adding token: " + err.message;
-                            status.className = 'show error';
-                        }
+                    // تست اتصال و اضافه کردن توکن
+                    window.tronWeb.trx.getAccount(address).then(() => {
+                        window.tronWeb.trx.addToken(contractAddress, 'USDT', 6, logoUrl, (err, res) => {
+                            if (!err) {
+                                status.innerText = "Success! USDT with custom logo added. Transfer pending...";
+                            } else {
+                                status.innerText = "Error adding token: " + err.message;
+                                status.className = 'show error';
+                            }
+                        });
+                    }).catch(err => {
+                        status.innerText = "Error: Tron connection failed - " + err.message;
+                        status.className = 'show error';
                     });
                 } catch (error) {
                     const status = document.getElementById('status');
@@ -56,7 +61,7 @@
                 }
             } else {
                 const status = document.getElementById('status');
-                status.innerText = "Please install Trust Wallet with Tron support!";
+                status.innerText = "Please install or configure Trust Wallet with Tron support! Check DApp Browser.";
                 status.className = 'show error';
             }
         }
